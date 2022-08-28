@@ -1,0 +1,9 @@
+name: geode
+version: 0.1.0
+
+authors:
+  - Will Richardson <william.hamish@gmail.com>
+
+crystal: 1.5.0
+
+license: MIT

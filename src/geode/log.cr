@@ -1,0 +1,113 @@
+require "colorize"
+require "log"
+
+enum Log::Severity
+  def short : Char
+    case self
+    when Trace
+      'T'
+    when Debug
+      'D'
+    when Info
+      'I'
+    when Notice
+      'N'
+    when Warn
+      'W'
+    when Error
+      'E'
+    when Fatal
+      'F'
+    when None
+      'N'
+    else
+      to_s[0]
+    end
+  end
+end
+
+module Geode
+  class NilLog < ::Log
+    SILENCED = [] of String
+
+    def initialize(source)
+      super source, nil, Log::Severity::None
+    end
+
+    {% for method in ::Log::Severity.constants %}
+      def self.{{ method.downcase }}(&block)
+      end
+      def self.{{ method.downcase }}
+      end
+    {% end %}
+  end
+end
+
+class Log
+  def self.for(source : String, level : Severity? = nil) : Log
+    if Geode::NilLog::SILENCED.includes? source
+      return Geode::NilLog.new source
+    else
+      previous_def
+    end
+  end
+
+  macro disable_logging(mod)
+    {% ::Geode::NilLog::SILENCED.push mod %}
+  end
+end
+
+class Log::Builder
+  @format : Log::Formatter = SimpleFormat
+
+  def format(@format : Log::Formatter)
+  end
+
+  def stderr(severity = Severity::Debug, match = "*")
+    self.bind(match, severity, Log::IOBackend.new(STDERR, formatter: @format))
+  end
+
+  def file(path, severity = Severity::Info, match = "*")
+    self.bind(match, severity, Log::IOBackend.new(File.open(path), formatter: @format))
+  end
+
+  def custom(backend, severity = Severity::Debug, match = "*")
+    self.bind(match, severity, backend)
+  end
+end
+
+struct SimpleFormat < Log::StaticFormatter
+  FMT = "%m/%d %H:%M:%S"
+
+  def initialize(*args)
+    super(*args)
+    Colorize.on_tty_only!
+  end
+
+  private def color(sev : Log::Severity)
+    case sev
+    when Log::Severity::Debug
+      Colorize::ColorANSI::Blue
+    when Log::Severity::Error, Log::Severity::Fatal
+      Colorize::ColorANSI::Red
+    when Log::Severity::Warn
+      Colorize::ColorANSI::Yellow
+    else
+      Colorize::ColorANSI::Default
+    end
+  end
+
+  def run
+    s = @entry.severity
+    Colorize.with.fore(color(s)).surround(@io) do |io|
+      t = @entry.timestamp.to_s FMT
+      @io << "[#{s.label[0]} #{t}] #{@entry.message}"
+      if details = @entry.data[:details]?
+        @io << "\n" << details
+      end
+      if ex = @entry.exception
+        ex.inspect_with_backtrace @io
+      end
+    end
+  end
+end
