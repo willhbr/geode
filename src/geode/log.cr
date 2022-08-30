@@ -55,6 +55,17 @@ class Log
   macro disable_logging(mod)
     {% ::Geode::NilLog::SILENCED.push mod %}
   end
+
+  def self.log(severity : Log::Severity, *, exception : Exception? = nil, &block)
+    {% for sev in %i(Trace Debug Info Notice Warn Error Fatal) %}
+      case severity
+      when Log::Severity::{{ sev.id }}
+        Top.{{ sev.id.downcase }}(exception: exception) do |dsl|
+          yield dsl
+        end
+      end
+    {% end %}
+  end
 end
 
 class Log::Builder
