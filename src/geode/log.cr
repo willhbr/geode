@@ -75,11 +75,11 @@ class Log::Builder
   end
 
   def stderr(severity = Severity::Debug, match = "*")
-    self.bind(match, severity, Log::IOBackend.new(STDERR, formatter: @format))
+    self.bind(match, severity, Log::IOBackend.new(STDERR, dispatcher: :sync, formatter: @format))
   end
 
   def file(path, severity = Severity::Info, match = "*")
-    self.bind(match, severity, Log::IOBackend.new(File.open(path), formatter: @format))
+    self.bind(match, severity, Log::IOBackend.new(File.open(path), dispatcher: :sync, formatter: @format))
   end
 
   def custom(backend, severity = Severity::Debug, match = "*")

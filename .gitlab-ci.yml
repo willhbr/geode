@@ -1,0 +1,14 @@
+image: "crystallang/crystal:latest"
+
+cache:
+  paths:
+    - libs
+
+before_script:
+  - crystal -v
+  - shards
+
+spec:
+  script:
+  - crystal spec
+
