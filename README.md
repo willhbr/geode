@@ -1,6 +1,8 @@
-# geode
+# Geode
 
-TODO: Write a description here
+Additional functionality for Crystal.
+
+Geode is opinionated by design and does not shy away from changing stdlib behaviour.
 
 ## Installation
 
@@ -9,31 +11,25 @@ TODO: Write a description here
    ```yaml
    dependencies:
      geode:
-       github: your-github-user/geode
+       github: willhbr/geode
    ```
 
 2. Run `shards install`
 
 ## Usage
 
+Either require everything:
+
 ```crystal
 require "geode"
 ```
 
-TODO: Write usage instructions here
+Or require just one feature, eg:
 
-## Development
-
-TODO: Write development instructions here
-
-## Contributing
-
-1. Fork it (<https://github.com/your-github-user/geode/fork>)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+```crystal
+require "geode/log"
+```
 
 ## Contributors
 
-- [Will Richardson](https://github.com/your-github-user) - creator and maintainer
+- [Will Richardson](https://github.com/willhbr) - creator and maintainer
