@@ -10,6 +10,10 @@ module Geode::ProgramInfo
     Log.log(sev) { String.build { |io| to_s(io) } }
   end
 
+  def self.to_s
+    String.build { |io| to_s(io) }
+  end
+
   def self.to_s(io : IO)
     if PROGRAM_NAME != Process.executable_path
       io.puts "#{Process.executable_path} \\ # (#{PROGRAM_NAME})"
