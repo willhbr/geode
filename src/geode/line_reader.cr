@@ -10,7 +10,8 @@ abstract class Geode::LineReader < IO
     while idx = slice.index('\n'.ord, offset: prev_idx)
       line = String.build do |io|
         unless @buffer.empty?
-          io.write @buffer.to_slice
+          @buffer.rewind
+          IO.copy @buffer, io
           @buffer.clear
         end
         io.write slice[prev_idx...idx]

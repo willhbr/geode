@@ -42,7 +42,6 @@ describe Geode::Spindle do
 
   it "handles sub spindles" do
     s = Spindle.new
-    puts s
     res = [] of Int32
     sub = s.child
     sub.spawn do
