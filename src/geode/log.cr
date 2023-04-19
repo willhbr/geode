@@ -74,6 +74,10 @@ class Log::Builder
   def format(@format : Log::Formatter)
   end
 
+  def format_extended
+    @format = ExtendedSimpleFormat
+  end
+
   def stderr(severity = Severity::Debug, match = "*")
     self.bind(match, severity, Log::IOBackend.new(STDERR, dispatcher: :sync, formatter: @format))
   end
@@ -95,7 +99,7 @@ struct SimpleFormat < Log::StaticFormatter
     Colorize.on_tty_only!
   end
 
-  private def color(sev : Log::Severity)
+  def self.color(sev : Log::Severity)
     case sev
     when Log::Severity::Debug
       Colorize::ColorANSI::Blue
@@ -113,6 +117,29 @@ struct SimpleFormat < Log::StaticFormatter
     Colorize.with.fore(color(s)).surround(@io) do |io|
       t = @entry.timestamp.to_s FMT
       @io << "[#{s.label[0]} #{t}] #{@entry.message}"
+      if details = @entry.data[:details]?
+        @io << "\n" << details
+      end
+      if ex = @entry.exception
+        ex.inspect_with_backtrace @io
+      end
+    end
+  end
+end
+
+struct ExtendedSimpleFormat < Log::StaticFormatter
+  FMT = "%m/%d %H:%M:%S"
+
+  def initialize(*args)
+    super(*args)
+    Colorize.on_tty_only!
+  end
+
+  def run
+    s = @entry.severity
+    Colorize.with.fore(SimpleFormat.color(s)).surround(@io) do |io|
+      t = @entry.timestamp.to_s FMT
+      @io << "[#{s.label[0]} #{t}] #{@entry.source}: #{@entry.message}"
       if details = @entry.data[:details]?
         @io << "\n" << details
       end
