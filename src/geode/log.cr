@@ -114,7 +114,7 @@ struct SimpleFormat < Log::StaticFormatter
 
   def run
     s = @entry.severity
-    Colorize.with.fore(color(s)).surround(@io) do |io|
+    Colorize.with.fore(SimpleFormat.color(s)).surround(@io) do |io|
       t = @entry.timestamp.to_s FMT
       @io << "[#{s.label[0]} #{t}] #{@entry.message}"
       if details = @entry.data[:details]?
