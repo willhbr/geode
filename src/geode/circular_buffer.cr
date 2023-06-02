@@ -60,6 +60,21 @@ class Geode::CircularBuffer(T)
     end
   end
 
+  def each_last(count)
+    cap = self.capacity
+    count = {cap, count}.min
+    if @full
+      finish = @idx + cap
+      start = finish - count
+    else
+      finish = @idx
+      start = {finish - count, 0}.max
+    end
+    (start...finish).each do |idx|
+      yield @buffer[idx % cap]
+    end
+  end
+
   def to_s(io)
     io << '['
     first = true
