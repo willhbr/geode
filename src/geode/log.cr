@@ -144,6 +144,7 @@ struct ExtendedSimpleFormat < Log::StaticFormatter
         @io << "\n" << details
       end
       if ex = @entry.exception
+        @io << '\n'
         ex.inspect_with_backtrace @io
       end
     end

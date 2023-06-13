@@ -10,7 +10,12 @@ struct Time::Span
     span_nanos : Int32 = 0
     prev_char = '\0'
     decimal_pt = 0
+    positive = true
     string.each_char do |char|
+      if prev_char == '\0' && char == '-'
+        positive = false
+        next
+      end
       if char.ascii_number?
         if prev_char == 'm'
           span_seconds += value * 60
@@ -64,7 +69,8 @@ struct Time::Span
     if prev_char == 'm'
       span_seconds += value * 60
     end
-    new(seconds: span_seconds, nanoseconds: span_nanos)
+    span = new(seconds: span_seconds, nanoseconds: span_nanos)
+    positive ? span : -span
   end
 
   def to_json(builder)
