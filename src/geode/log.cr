@@ -56,6 +56,15 @@ class Log
     {% ::Geode::NilLog::SILENCED.push mod %}
   end
 
+  macro rescue(msg, &block)
+    begin
+      {{ block.body }}
+    rescue %ex : Exception
+      Log.error(exception: %ex) { {{ msg }} }
+      nil
+    end
+  end
+
   def self.log(severity : Log::Severity, *, exception : Exception? = nil, &block)
     {% for sev in %i(Trace Debug Info Notice Warn Error Fatal) %}
       case severity
@@ -121,6 +130,7 @@ struct SimpleFormat < Log::StaticFormatter
         @io << "\n" << details
       end
       if ex = @entry.exception
+        @io << '\n'
         ex.inspect_with_backtrace @io
       end
     end
