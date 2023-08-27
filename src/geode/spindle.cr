@@ -27,17 +27,10 @@ class Geode::Spindle
   @failures = Array(Exception).new
   @cancelled = false
 
-  def self.new
+  def self.run
     spindle = new
-    begin
-      spindle.mark_started(Fiber.current, count_child: true)
+    spindle.wrapped_internal(true) do
       yield spindle
-    rescue cancelled : Fiber::CancellationException
-      spindle.cancel
-    rescue ex : Exception
-      spindle.mark_failed(ex)
-    ensure
-      spindle.mark_completion
     end
     spindle.join
   end
@@ -52,7 +45,7 @@ class Geode::Spindle
       end
       @child_count += 1
       ::spawn do
-        self.wrapped do
+        self.wrapped_internal(false) do
           block.call
         end
       end
@@ -60,8 +53,14 @@ class Geode::Spindle
   end
 
   def wrapped(&block)
+    wrapped_internal(true) do
+      yield
+    end
+  end
+
+  protected def wrapped_internal(count_child, &block)
     begin
-      self.mark_started(Fiber.current, count_child: true)
+      self.mark_started(Fiber.current, count_child: count_child)
       yield
     rescue cancelled : Fiber::CancellationException
       self.cancel
@@ -102,6 +101,12 @@ class Geode::Spindle
     end
   end
 
+  def child_count : Int32
+    @lock.synchronize do
+      return @child_count
+    end
+  end
+
   protected def mark_failed(ex : Exception)
     @lock.synchronize do
       @failures << ex
@@ -121,8 +126,8 @@ class Geode::Spindle
 
   protected def mark_completion
     @lock.synchronize do
-      c = @child_count -= 1
-      if c <= 0
+      count = @child_count -= 1
+      if count <= 0
         @completion.send true
       end
     end
