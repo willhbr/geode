@@ -126,8 +126,10 @@ struct SimpleFormat < Log::StaticFormatter
     Colorize.with.fore(SimpleFormat.color(s)).surround(@io) do |io|
       t = @entry.timestamp.to_s FMT
       @io << "[#{s.label[0]} #{t}] #{@entry.message}"
-      if details = @entry.data[:details]?
-        @io << "\n" << details
+      unless @entry.data.empty?
+        @io << " ["
+        @entry.data.to_s @io
+        @io << ']'
       end
       if ex = @entry.exception
         @io << '\n'
@@ -150,8 +152,10 @@ struct ExtendedSimpleFormat < Log::StaticFormatter
     Colorize.with.fore(SimpleFormat.color(s)).surround(@io) do |io|
       t = @entry.timestamp.to_s FMT
       @io << "[#{s.label[0]} #{t}] #{@entry.source}: #{@entry.message}"
-      if details = @entry.data[:details]?
-        @io << "\n" << details
+      unless @entry.data.empty?
+        @io << " ["
+        @entry.data.to_s @io
+        @io << ']'
       end
       if ex = @entry.exception
         @io << '\n'
