@@ -26,6 +26,14 @@ abstract class Geode::LineReader < IO
   def read(slice : Bytes) : Int32
     return 0
   end
+
+  def close
+    unless @buffer.empty?
+      @buffer.rewind
+      written @buffer.to_s
+    end
+    @buffer.close
+  end
 end
 
 class Geode::CallbackLineReader < Geode::LineReader
