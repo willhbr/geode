@@ -1,16 +1,17 @@
+require "./semaphore"
+require "./spindle"
+
 module Enumerable(T)
-  def each_parallel(count : Int32, &block : Proc(T, Nil))
-    chan = Channel(Nil).new(count)
-    count.times { chan.send nil }
-    fin = Channel(Nil).new
-    each_with_index do |item, index|
-      spawn do
-        chan.receive
-        block.call item
-        chan.send nil
-        fin.send nil if index == size - 1
+  def each_parallel(limit : Int32, &block : Proc(T, Nil))
+    s = Geode::Semaphore.new limit
+    Geode::Spindle.run do |sp|
+      each do |item|
+        sp.spawn do
+          s.take do
+            block.call item
+          end
+        end
       end
     end
-    fin.receive
   end
 end

@@ -1,3 +1,5 @@
+require "log"
+
 class Geode::Spindle
   @lock = Mutex.new
   @completion = Channel(Bool).new(1)
